@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:id="@+id/remote_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:id="@+id/remote_user_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/remote_user_nickname"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginLeft="15dp"
+                android:gravity="center_vertical"
+                android:text="오징어"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/remote_timestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginLeft="15dp"
+                android:gravity="center_vertical"
+                android:text="2022-12-31 12:33:00"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/remote_message"
+                android:background="@drawable/rounded_remote_corner"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:gravity="left"
+                android:layout_marginRight="100dp"
+                android:maxLines="4"
+                android:singleLine="false"
+                android:text="동해물과 백두산이 마르고 닿도록 하느님이 보우하사, 우리나라 만세"
+                android:textAppearance="?attr/textAppearanceListItem"  />
+
+            <ImageView
+                android:id="@+id/remote_image"
+                android:background="@drawable/rounded_remote_corner"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:gravity="left"
+                android:layout_marginRight="100dp"
+                android:maxLines="4"
+                android:singleLine="false"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/local_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/local_user_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/local_user_nickname"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginRight="15dp"
+                android:gravity="center_vertical"
+                android:text="오징어"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/local_timestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginRight="15dp"
+                android:gravity="center_vertical"
+                android:text="2022-12-31 12:33:00"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="right">
+
+            <TextView
+                android:id="@+id/local_message"
+                android:background="@drawable/rounded_local_corner"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:gravity="left"
+                android:layout_marginLeft="100dp"
+                android:maxLines="100"
+                android:padding="15dp"
+                android:singleLine="false"
+                android:text="동해물과 백두산이 마르고 닿도록 하느님이 보우하사, 우리나라 만세"
+                android:textAppearance="?attr/textAppearanceListItem"  />
+
+            <ImageView
+                android:id="@+id/local_image"
+                android:background="@drawable/rounded_local_corner"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:gravity="left"
+                android:layout_marginLeft="100dp"
+                android:maxLines="100"
+                android:padding="15dp"
+                android:singleLine="false"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

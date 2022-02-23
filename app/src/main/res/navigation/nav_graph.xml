@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/LoginFragment">
+
+    <fragment
+        android:id="@+id/LoginFragment"
+        android:name="com.seerstech.seerschat.app.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+
+        <action
+            android:id="@+id/action_LoginFragment_to_LobbyFragment"
+            app:destination="@id/LobbyFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/LobbyFragment"
+        android:name="com.seerstech.seerschat.app.LobbyFragment"
+        android:label="Lobby"
+        tools:layout="@layout/fragment_lobby">
+
+        <action
+            android:id="@+id/action_LobbyFragment_to_LoginFragment"
+            app:destination="@id/LoginFragment" />
+        <action
+            android:id="@+id/action_LobbyFragment_to_CreateRoomFragment"
+            app:destination="@id/CreateRoomFragment" />
+        <action
+            android:id="@+id/action_LobbyFragment_to_RoomFragment"
+            app:destination="@id/RoomFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/CreateRoomFragment"
+        android:name="com.seerstech.seerschat.app.CreateRoomFragment"
+        android:label="Create Room"
+        tools:layout="@layout/fragment_create_room">
+
+        <action
+            android:id="@+id/action_CreateRoomFragment_to_LobbyFragment"
+            app:destination="@id/LobbyFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/RoomFragment"
+        android:name="com.seerstech.seerschat.app.RoomFragment"
+        android:label="Room"
+        tools:layout="@layout/fragment_room">
+
+        <action
+            android:id="@+id/action_RoomFragment_to_LobbyFragment"
+            app:destination="@id/LobbyFragment" />
+    </fragment>
+</navigation>
