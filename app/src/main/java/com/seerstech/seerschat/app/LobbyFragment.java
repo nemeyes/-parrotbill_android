@@ -78,7 +78,7 @@ public class LobbyFragment extends Fragment {
         }
     };
 
-    ChatClient.OnListener mListener = new ChatClient.OnListener() {
+    ChatClient.OnChatListener mListener = new ChatClient.OnChatListener() {
         @Override
         public void onLogoutSuccess() {
             getActivity().runOnUiThread(new Runnable() {
@@ -99,11 +99,6 @@ public class LobbyFragment extends Fragment {
                     popUp.show(getChildFragmentManager(), null);
                 }
             });
-        }
-
-        @Override
-        public void onReissueNeeded() {
-
         }
 
         @Override

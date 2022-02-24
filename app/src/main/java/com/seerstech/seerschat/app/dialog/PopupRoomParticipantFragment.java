@@ -103,7 +103,7 @@ public class PopupRoomParticipantFragment extends DialogFragment {
         public void onConfirm() {}
     };
 
-    ChatClient.OnListener mListener = new ChatClient.OnListener() {
+    ChatClient.OnChatListener mListener = new ChatClient.OnChatListener() {
         @Override
         public void onGetRoomUserListSuccess(String roomId, List<ChatUser> userList) {
             getActivity().runOnUiThread(new Runnable() {

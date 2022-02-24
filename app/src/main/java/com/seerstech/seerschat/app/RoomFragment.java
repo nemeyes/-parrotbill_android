@@ -8,11 +8,9 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.obsez.android.lib.filechooser.ChooserDialog;
 import com.seerstech.chat.client.ChatClient;
@@ -191,15 +189,13 @@ public class RoomFragment extends Fragment {
         }
     };
 
-    ChatClient.OnListener mListener = new ChatClient.OnListener() {
-        public void onReissueNeeded() {
-
-        }
-
+    ChatClient.OnChatListener mListener = new ChatClient.OnChatListener() {
+        @Override
         public void onReissueSuccess(String userId, String userNickname, String userRole) {
 
         }
 
+        @Override
         public void onReissueFail(String code, String message) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -211,6 +207,7 @@ public class RoomFragment extends Fragment {
             });
         }
 
+        @Override
         public void onGetRoomUserListSuccess(String roomId, List<ChatUser> userList) {
             synchronized (mUserListLock) {
                 userList.forEach(user -> {
@@ -225,6 +222,7 @@ public class RoomFragment extends Fragment {
             });
         }
 
+        @Override
         public void onGetRoomUserListFail(String code, String message) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -236,6 +234,7 @@ public class RoomFragment extends Fragment {
             });
         }
 
+        @Override
         public void onLeaveRoomSuccess() {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -245,6 +244,7 @@ public class RoomFragment extends Fragment {
             });
         }
 
+        @Override
         public void onLeaveRoomFail(String code, String message) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -256,10 +256,12 @@ public class RoomFragment extends Fragment {
             });
         }
 
+        @Override
         public void onInviteUserSuccess() {
             mChatClient.getRoomUserList(mRoomId);
         }
 
+        @Override
         public void onInviteUserFail(String code, String message) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -271,6 +273,7 @@ public class RoomFragment extends Fragment {
             });
         }
 
+        @Override
         public void onGetRoomMessageListSuccess(String roomId, List<ChatMessage> messageList) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -286,6 +289,7 @@ public class RoomFragment extends Fragment {
             });
         }
 
+        @Override
         public void onGetRoomMessageListFail(String code, String message) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -297,12 +301,19 @@ public class RoomFragment extends Fragment {
             });
         }
 
+        @Override
         public void onMessageReceive(ChatMessage chatMessage) {
-            mMessageList.add(chatMessage);
-            mAdapter.notifyDataSetChanged();
-            mBinding.messageList.scrollToPosition(mAdapter.getItemCount() - 1);
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mMessageList.add(chatMessage);
+                    mAdapter.notifyDataSetChanged();
+                    mBinding.messageList.scrollToPosition(mAdapter.getItemCount() - 1);
+                }
+            });
         }
 
+        @Override
         public void onUploadFileSuccess(String fileName, String fileDownloadUrl, String fileType, Long fileSize) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -314,6 +325,7 @@ public class RoomFragment extends Fragment {
             });
         }
 
+        @Override
         public void onUploadFileFail(String code, String message) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
