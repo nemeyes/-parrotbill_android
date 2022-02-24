@@ -4,6 +4,7 @@ import android.net.Uri;
 
 import com.koushikdutta.async.http.*;
 import com.koushikdutta.async.http.body.*;
+import com.seerstech.chat.client.error.ErrorMessage;
 import com.seerstech.chat.client.jwt.JWTToken;
 import com.seerstech.chat.client.user.OnFindUserListener;
 import com.seerstech.chat.client.user.OnLoginListener;
@@ -71,14 +72,13 @@ public class UserClient {
                                loginObserver.onFailure(result.getString("code"), result.getString("message"));
                            }
                        } else {
-                           loginObserver.onFailure("CODE_GENERIC_FAIL", "Failed In Login");
+                           loginObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LOGIN);
                        }
                     } catch (JSONException jsonException) {
-                        //jsonException.printStackTrace();
-                        loginObserver.onFailure("CODE_GENERIC_FAIL", "Failed In Login");
+                        loginObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LOGIN);
                     }
                 } else {
-                    loginObserver.onFailure("CODE_GENERIC_FAIL", "Failed In Login");
+                    loginObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LOGIN);
                 }
            }
         });
@@ -117,16 +117,16 @@ public class UserClient {
                                 logoutObserver.onFailure(result.getString("code"), result.getString("message"));
                             }
                         } else {
-
+                            logoutObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LOGOUT);
                         }
                     } catch (JSONException jsonException) {
-                        jsonException.printStackTrace();
+                        logoutObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LOGOUT);
                     }
                 } else {
-                    if(source.code()==401) {
+                    if(source!=null && source.code()==401) {
                         logoutObserver.onSuccess(true);
                     } else {
-                        logoutObserver.onFailure("CODE_GENERIC_FAIL", "Failed In Logout");
+                        logoutObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LOGOUT);
                     }
                 }
             }
@@ -157,36 +157,40 @@ public class UserClient {
             @Override
             public void onCompleted(Exception e, AsyncHttpResponse source, JSONObject result) {
                 if(e==null) {
-                    try {
-                        String code = result.getString("code");
-                        if(code.equals(SUCCESS)) {
-                            String grantType = result.getString("grant_type");
-                            String accessToken = result.getString("access_token");
-                            String refreshToken = result.getString("refresh_token");
-                            Long refreshTokenExpTime = result.getLong("refresh_token_expiration_time");
-                            String userId = result.getString("user_id");
-                            String userNickname = result.getString("user_nickname");
-                            String userRole = result.getString("user_role");
+                    if(source.code()==200) {
+                        try {
+                            String code = result.getString("code");
+                            if (code.equals(SUCCESS)) {
+                                String grantType = result.getString("grant_type");
+                                String accessToken = result.getString("access_token");
+                                String refreshToken = result.getString("refresh_token");
+                                Long refreshTokenExpTime = result.getLong("refresh_token_expiration_time");
+                                String userId = result.getString("user_id");
+                                String userNickname = result.getString("user_nickname");
+                                String userRole = result.getString("user_role");
 
-                            JWTToken token = JWTToken.builder()
-                                    .grantType(grantType)
-                                    .accessToken(accessToken)
-                                    .refreshToken(refreshToken)
-                                    .refreshTokenExpTime(refreshTokenExpTime)
-                                    .userId(userId)
-                                    .userNickname(userNickname)
-                                    .userRole(userRole)
-                                    .build();
+                                JWTToken token = JWTToken.builder()
+                                        .grantType(grantType)
+                                        .accessToken(accessToken)
+                                        .refreshToken(refreshToken)
+                                        .refreshTokenExpTime(refreshTokenExpTime)
+                                        .userId(userId)
+                                        .userNickname(userNickname)
+                                        .userRole(userRole)
+                                        .build();
 
-                            reissueObserver.onSuccess(token);
-                        } else {
-                            reissueObserver.onFailure(result.getString("code"), result.getString("message"));
+                                reissueObserver.onSuccess(token);
+                            } else {
+                                reissueObserver.onFailure(result.getString("code"), result.getString("message"));
+                            }
+                        } catch (JSONException jsonException) {
+                            reissueObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_REISSUE);
                         }
-                    } catch (JSONException jsonException) {
-                        jsonException.printStackTrace();
+                    } else {
+                        reissueObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_REISSUE);
                     }
                 } else {
-                    reissueObserver.onFailure("CODE_GENERIC_FAIL", "Failed In Reissue");
+                    reissueObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_REISSUE);
                 }
             }
         });
@@ -208,21 +212,25 @@ public class UserClient {
             @Override
             public void onCompleted(Exception e, AsyncHttpResponse source, JSONObject result) {
                 if(e==null) {
-                    try {
-                        String code = result.getString("code");
-                        if(code.equals(SUCCESS)) {
-                            findUserObserver.onSuccess(result.getString("id"), result.getString("nickname"));
-                        } else {
-                            findUserObserver.onFailure(result.getString("code"), result.getString("message"));
+                    if(source.code()==200) {
+                        try {
+                            String code = result.getString("code");
+                            if (code.equals(SUCCESS)) {
+                                findUserObserver.onSuccess(result.getString("id"), result.getString("nickname"));
+                            } else {
+                                findUserObserver.onFailure(result.getString("code"), result.getString("message"));
+                            }
+                        } catch (JSONException jsonException) {
+                            findUserObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_FINDUSER);
                         }
-                    } catch (JSONException jsonException) {
-                        jsonException.printStackTrace();
+                    } else {
+                        findUserObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_FINDUSER);
                     }
                 } else {
-                    if(source.code()==401) {
+                    if(source!=null && source.code()==401) {
                         findUserObserver.onReissueNeeded();
                     } else {
-                        findUserObserver.onFailure("CODE_GENERIC_FAIL", "Failed In FindUser");
+                        findUserObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_FINDUSER);
                     }
                 }
             }

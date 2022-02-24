@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.koushikdutta.async.http.*;
 import com.koushikdutta.async.http.body.*;
+import com.seerstech.chat.client.error.ErrorMessage;
 import com.seerstech.chat.client.room.OnCreateRoomListener;
 import com.seerstech.chat.client.room.OnGetRoomListListener;
 import com.seerstech.chat.client.room.OnGetRoomUserListListener;
@@ -44,32 +45,36 @@ public class RoomClient {
             @Override
             public void onCompleted(Exception e, AsyncHttpResponse source, JSONArray result) {
                 if(e==null) {
-                    ArrayList<ChatRoom> roomList = null;
-                    if(result.length()>0) {
-                        roomList = new ArrayList<ChatRoom>();
+                    if(source.code()==200) {
+                        ArrayList<ChatRoom> roomList = null;
+                        if (result.length() > 0) {
+                            roomList = new ArrayList<ChatRoom>();
+                        }
+                        for (int i = 0; i < result.length(); i++) {
+                            try {
+                                JSONObject obj = result.getJSONObject(i);
+                                String roomId = obj.getString("id");
+                                String roomName = obj.getString("name");
+                                String roomDescription = obj.getString("description");
+
+                                ChatRoom room = new ChatRoom();
+                                room.setRoomId(roomId);
+                                room.setRoomName(roomName);
+                                room.setRoomDescription(roomDescription);
+
+                                roomList.add(room);
+
+                            } catch (JSONException jsonException) {}
+                        }
+                        getRoomListObserver.onSuccess(roomList);
+                    } else {
+                        getRoomListObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_GETROOMLIST);
                     }
-                    for (int i = 0; i < result.length(); i++) {
-                        try {
-                            JSONObject obj = result.getJSONObject(i);
-                            String roomId = obj.getString("id");
-                            String roomName = obj.getString("name");
-                            String roomDescription = obj.getString("description");
-
-                            ChatRoom room = new ChatRoom();
-                            room.setRoomId(roomId);
-                            room.setRoomName(roomName);
-                            room.setRoomDescription(roomDescription);
-
-                            roomList.add(room);
-
-                        } catch (JSONException jsonException) {}
-                    }
-                    getRoomListObserver.onSuccess(roomList);
                 } else {
-                    if(source.code()==401) {
+                    if(source!=null && source.code()==401) {
                         getRoomListObserver.onReissueNeeded();
                     } else {
-                        getRoomListObserver.onFailure("CODE_GENERIC_FAIL", "Failed In GetRoomList");
+                        getRoomListObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_GETROOMLIST);
                     }
                 }
             }
@@ -103,26 +108,32 @@ public class RoomClient {
             @Override
             public void onCompleted(Exception e, AsyncHttpResponse source, JSONObject result) {
                 if(e==null) {
-                    try {
-                        String code = result.getString("code");
-                        if (code.equals(SUCCESS)) {
-                            createRoomObserver.onSuccess();
-                        } else {
-                            createRoomObserver.onFailure(result.getString("code"), result.getString("message"));
+                    if(source.code()==200) {
+                        try {
+                            String code = result.getString("code");
+                            if (code.equals(SUCCESS)) {
+                                createRoomObserver.onSuccess();
+                            } else {
+                                createRoomObserver.onFailure(result.getString("code"), result.getString("message"));
+                            }
+                        } catch (JSONException jsonException) {
+                            createRoomObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_CREATEROOM);
                         }
-                    } catch (JSONException jsonException) {}
+                    } else {
+                        createRoomObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_CREATEROOM);
+                    }
                 } else {
-                    if(source.code()==401) {
+                    if(source!=null && source.code()==401) {
                         createRoomObserver.onReissueNeeded();
                     } else {
-                        createRoomObserver.onFailure("CODE_GENERIC_FAIL", "Failed In CreateRoom");
+                        createRoomObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_CREATEROOM);
                     }
                 }
             }
         });
     }
 
-    public void getRoomUsers(String grantType, String accessToken, String roomId, OnGetRoomUserListListener observer) {
+    public void getRoomUserList(String grantType, String accessToken, String roomId, OnGetRoomUserListListener observer) {
         if (mUri.isEmpty())
             return;
 
@@ -145,42 +156,46 @@ public class RoomClient {
             @Override
             public void onCompleted(Exception e, AsyncHttpResponse source, JSONObject result) {
                 if(e==null) {
-                    try {
-                        String code = result.getString("code");
-                        String message = result.getString("message");
+                    if(source.code()==200) {
+                        try {
+                            String code = result.getString("code");
+                            String message = result.getString("message");
 
-                        if (code.equals(SUCCESS)) {
-                            String roomId = result.getString("room_id");
-                            JSONArray participant = result.getJSONArray("participants");
+                            if (code.equals(SUCCESS)) {
+                                String roomId = result.getString("room_id");
+                                JSONArray participant = result.getJSONArray("participants");
 
-                            ArrayList<ChatUser> userList = null;
-                            if(participant.length()>0) {
-                                userList = new ArrayList<ChatUser>();
+                                ArrayList<ChatUser> userList = null;
+                                if (participant.length() > 0) {
+                                    userList = new ArrayList<ChatUser>();
+                                }
+                                for (int i = 0; i < participant.length(); i++) {
+                                    JSONObject obj = participant.getJSONObject(i);
+                                    String userId = obj.getString("id");
+                                    String userNickname = obj.getString("name");
+
+                                    ChatUser user = new ChatUser();
+                                    user.setUserId(userId);
+                                    user.setUserNickname(userNickname);
+
+                                    userList.add(user);
+                                }
+                                getRoomUserListObserver.onSuccess(roomId, userList);
+                            } else {
+                                getRoomUserListObserver.onFailure(code, message);
                             }
-                            for (int i = 0; i < participant.length(); i++) {
-                                JSONObject obj = participant.getJSONObject(i);
-                                String userId = obj.getString("id");
-                                String userNickname = obj.getString("name");
 
-                                ChatUser user = new ChatUser();
-                                user.setUserId(userId);
-                                user.setUserNickname(userNickname);
-
-                                userList.add(user);
-                            }
-                            getRoomUserListObserver.onSuccess(roomId, userList);
-                        } else {
-                            getRoomUserListObserver.onFailure(code, message);
+                        } catch (JSONException jsonException) {
+                            getRoomUserListObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_GETROOMUSERLIST);
                         }
-
-                    } catch (JSONException jsonException) {
-                        getRoomUserListObserver.onFailure("CODE_GENERIC_FAIL", "참여자 목록조회 실패");
+                    } else {
+                        getRoomUserListObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_GETROOMUSERLIST);
                     }
                 } else {
-                    if(source.code()==401) {
+                    if(source!=null && source.code()==401) {
                         getRoomUserListObserver.onReissueNeeded();
                     } else {
-                        getRoomUserListObserver.onFailure("CODE_GENERIC_FAIL", "참여자 목록조회 실패");
+                        getRoomUserListObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_GETROOMUSERLIST);
                     }
                 }
             }
@@ -210,19 +225,25 @@ public class RoomClient {
             @Override
             public void onCompleted(Exception e, AsyncHttpResponse source, JSONObject result) {
                 if(e==null) {
-                    try {
-                        String code = result.getString("code");
-                        if (code.equals(SUCCESS)) {
-                            leaveRoomObserver.onSuccess();
-                        } else {
-                            leaveRoomObserver.onFailure(result.getString("code"), result.getString("message"));
+                    if(source.code()==200) {
+                        try {
+                            String code = result.getString("code");
+                            if (code.equals(SUCCESS)) {
+                                leaveRoomObserver.onSuccess();
+                            } else {
+                                leaveRoomObserver.onFailure(result.getString("code"), result.getString("message"));
+                            }
+                        } catch (JSONException jsonException) {
+                            leaveRoomObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LEAVEROOM);
                         }
-                    } catch (JSONException jsonException) {}
+                    } else {
+                        leaveRoomObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LEAVEROOM);
+                    }
                 } else {
-                    if(source.code()==401) {
+                    if(source!=null && source.code()==401) {
                         leaveRoomObserver.onReissueNeeded();
                     } else {
-                        leaveRoomObserver.onFailure("CODE_GENERIC_FAIL", "Failed In LeaveRoom");
+                        leaveRoomObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LEAVEROOM);
                     }
                 }
             }
@@ -253,19 +274,25 @@ public class RoomClient {
             @Override
             public void onCompleted(Exception e, AsyncHttpResponse source, JSONObject result) {
                 if(e==null) {
-                    try {
-                        String code = result.getString("code");
-                        if (code.equals(SUCCESS)) {
-                            inviteUserObserver.onSuccess();
-                        } else {
-                            inviteUserObserver.onFailure(result.getString("code"), result.getString("message"));
+                    if(source.code()==200) {
+                        try {
+                            String code = result.getString("code");
+                            if (code.equals(SUCCESS)) {
+                                inviteUserObserver.onSuccess();
+                            } else {
+                                inviteUserObserver.onFailure(result.getString("code"), result.getString("message"));
+                            }
+                        } catch (JSONException jsonException) {
+                            inviteUserObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_INVITEUSER);
                         }
-                    } catch (JSONException jsonException) {}
+                    } else {
+                        inviteUserObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_INVITEUSER);
+                    }
                 } else {
-                    if(source.code()==401) {
+                    if(source!=null && source.code()==401) {
                         inviteUserObserver.onReissueNeeded();
                     } else {
-                        inviteUserObserver.onFailure("CODE_GENERIC_FAIL", "Failed In LeaveRoom");
+                        inviteUserObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_INVITEUSER);
                     }
                 }
             }
