@@ -141,12 +141,7 @@ public class CreateRoomFragment extends Fragment {
         public void onConfirm() {}
     };
 
-    ChatClient.OnListener mListener = new ChatClient.OnListener() {
-        @Override
-        public void onReissueNeeded() {
-
-        }
-
+    ChatClient.OnChatListener mListener = new ChatClient.OnChatListener() {
         @Override
         public void onReissueSuccess(String userId, String userNickname, String userRole) {
 

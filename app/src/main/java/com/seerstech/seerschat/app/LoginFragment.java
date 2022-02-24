@@ -51,7 +51,7 @@ public class LoginFragment extends Fragment {
         public void onConfirm() {}
     };
 
-    ChatClient.OnListener mListener = new ChatClient.OnListener() {
+    ChatClient.OnChatListener mListener = new ChatClient.OnChatListener() {
         @Override
         public void onLoginSuccess(String userId, String userNickname, String userRole) {
             JWTTokenContainer.getInstance().setToken(chatClient.getJWTToken());

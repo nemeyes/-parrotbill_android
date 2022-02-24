@@ -3,11 +3,34 @@ package com.seerstech.chat.client;
 import com.seerstech.chat.client.api.MessageClient;
 import com.seerstech.chat.client.api.RoomClient;
 import com.seerstech.chat.client.api.UserClient;
+import com.seerstech.chat.client.async.AsyncCreateRoomEvent;
+import com.seerstech.chat.client.async.AsyncDownloadFileEvent;
+import com.seerstech.chat.client.async.AsyncFindUserEvent;
+import com.seerstech.chat.client.async.AsyncGetRoomListEvent;
+import com.seerstech.chat.client.async.AsyncGetRoomMessageListEvent;
+import com.seerstech.chat.client.async.AsyncGetRoomUserListEvent;
+import com.seerstech.chat.client.async.AsyncInviteUserEvent;
+import com.seerstech.chat.client.async.AsyncLeaveRoomEvent;
+import com.seerstech.chat.client.async.AsyncLoginEvent;
+import com.seerstech.chat.client.async.AsyncLogoutEvent;
+import com.seerstech.chat.client.async.AsyncMessageReceiveEvent;
+import com.seerstech.chat.client.async.AsyncReissueEvent;
+import com.seerstech.chat.client.async.AsyncReissueNeededEvent;
+import com.seerstech.chat.client.async.AsyncUploadFileEvent;
 import com.seerstech.chat.client.jwt.JWTToken;
 import com.seerstech.chat.client.message.OnFileDownloadListener;
 import com.seerstech.chat.client.message.OnFileUploadListener;
 import com.seerstech.chat.client.message.OnGetRoomMessageListListener;
 import com.seerstech.chat.client.message.OnMessageReceiverListener;
+import com.seerstech.chat.client.reissue.ChatAPIEnum;
+import com.seerstech.chat.client.reissue.CreateRoomParameter;
+import com.seerstech.chat.client.reissue.DownloadFileParameter;
+import com.seerstech.chat.client.reissue.FindUserParameter;
+import com.seerstech.chat.client.reissue.GetRoomMessageListParameter;
+import com.seerstech.chat.client.reissue.GetRoomUserListParameter;
+import com.seerstech.chat.client.reissue.InviteUserParameter;
+import com.seerstech.chat.client.reissue.LeaveRoomParameter;
+import com.seerstech.chat.client.reissue.UploadFileParameter;
 import com.seerstech.chat.client.room.OnCreateRoomListener;
 import com.seerstech.chat.client.room.OnGetRoomListListener;
 import com.seerstech.chat.client.room.OnGetRoomUserListListener;
@@ -26,6 +49,10 @@ import java.io.File;
 import java.util.List;
 
 public class ChatClient {
+    public static final int SUCCESS = 0;
+    public static final int FAIL = 1;
+    public static final int REISSUE_NEEDED = 2;
+
     private final String mRestEndpoint;
     private final String mWSEndpoint;
 
@@ -36,14 +63,13 @@ public class ChatClient {
     private Object mJWTTokenLock;
     private JWTToken mJWTToken;
 
-    private OnListener mListener;
+    private OnChatListener mListener;
 
-    public static class OnListener {
+    public static class OnChatListener {
         public void onLoginSuccess(String userId, String userNickname, String userRole) {}
         public void onLoginFail(String code, String message) {}
         public void onLogoutSuccess() {}
         public void onLogoutFail(String code, String message) {}
-        public void onReissueNeeded() {}
         public void onReissueSuccess(String userId, String userNickname, String userRole) {}
         public void onReissueFail(String code, String message) {}
         public void onFindUserSuccess(String userId, String userNickname) {}
@@ -65,37 +91,9 @@ public class ChatClient {
         public void onUploadFileFail(String code, String message) {}
         public void onDownloadFileSuccess(File file) {}
         public void onDownloadFileFail(String code, String message) {}
-        /*
-        public void onLoginSuccess(String userId, String userNickname, String userRole);
-        public void onLoginFail(String code, String message);
-        public void onLogoutSuccess();
-        public void onLogoutFail(String code, String message);
-        public void onReissueNeeded();
-        public void onReissueSuccess(String userId, String userNickname, String userRole);
-        public void onReissueFail(String code, String message);
-        public void onFindUserSuccess(String userId, String userNickname);
-        public void onFindUserFail(String code, String message);
-        public void onGetRoomListSuccess(List<ChatRoom> roomList);
-        public void onGetRoomListFail(String code, String message);
-        public void onCreateRoomSuccess();
-        public void onCreateRoomFail(String code, String message);
-        public void onGetRoomUserListSuccess(List<ChatUser> userList);
-        public void onGetRoomUserListFail(String code, String message);
-        public void onLeaveRoomSuccess();
-        public void onLeaveRoomFail(String code, String message);
-        public void onInviteUserSuccess();
-        public void onInviteUserFail(String code, String message);
-        public void onGetRoomMessageListSuccess(List<ChatMessage> messageList);
-        public void onGetRoomMessageListFail(String code, String message);
-        public void onMessageReceive(ChatMessage chatMessage);
-        public void onUploadFileSuccess(String fileName, String fileDownloadUrl, String fileType, Long fileSize);
-        public void onUploadFileFail(String code, String message);
-        public void onDownloadFileSuccess(File file);
-        public void onDownloadFileFail(String code, String message);
-        */
     }
 
-    public ChatClient(String restEndpoint, String wsEndpoint, OnListener listener) {
+    public ChatClient(String restEndpoint, String wsEndpoint, OnChatListener listener) {
         this.mRestEndpoint = restEndpoint;
         this.mWSEndpoint = wsEndpoint;
         this.mListener = listener;
@@ -115,50 +113,29 @@ public class ChatClient {
     }
 
     public void login(String userId, String userPassword) {
-        /*
-        final Observable<JWTToken> loginObservable = Observable.create(subscriber -> {
-            mUserClient.login(userId, userPassword, new OnLoginListener() {
-                @Override
-                public void onSuccess(JWTToken token) {
-                    if(!subscriber.isDisposed()) {
-                        subscriber.onNext(token);
-                        subscriber.onComplete();
-                    }
-                }
-
-                @Override
-                public void onFailure(String code, String message) {
-                    if(!subscriber.isDisposed()) {
-                        subscriber.onError(new ChatClientException(code, message));
-                    }
-                }
-            });
-        });
-
-        loginObservable
-                .doOnError(e -> {
-                    ((ChatClientException)e).getCode();
-                    ((ChatClientException)e).getMessage();
-                })
-                .subscribe(token -> {
-                    token.getUserId();
-                    token.getUserNickname();
-                    token.getUserRole();
-                });
-        */
-
         mUserClient.login(userId, userPassword, new OnLoginListener() {
             @Override
             public void onSuccess(JWTToken token) {
                 synchronized (mJWTTokenLock) {
                     mJWTToken = token;
                 }
-                mListener.onLoginSuccess(token.getUserId(), token.getUserNickname(), token.getUserRole());
+                AsyncLoginEvent.Params param = new AsyncLoginEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                param.userId = token.getUserId();
+                param.userNickname = token.getUserNickname();
+                param.userRole = token.getUserRole();
+                new AsyncLoginEvent().execute(param);
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onLoginFail(code, message);
+                AsyncLoginEvent.Params param = new AsyncLoginEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncLoginEvent().execute(param);
             }
         });
     }
@@ -172,16 +149,27 @@ public class ChatClient {
             @Override
             public void onSuccess(boolean reissue) {
                 if(reissue) {
-                    //reissue();
-                    mListener.onReissueNeeded();
+                    AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                    param.chatClient = ChatClient.this;
+                    param.apiType = ChatAPIEnum.Logout;
+                    param.apiParameter = null;
+                    new AsyncReissueNeededEvent().execute(param);
                 } else {
-                    mListener.onLogoutSuccess();
+                    AsyncLogoutEvent.Params param = new AsyncLogoutEvent.Params();
+                    param.observer = mListener;
+                    param.type = SUCCESS;
+                    new AsyncLogoutEvent().execute(param);
                 }
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onLogoutFail(code, message);
+                AsyncLogoutEvent.Params param = new AsyncLogoutEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncLogoutEvent().execute(param);
             }
         });
     }
@@ -196,13 +184,60 @@ public class ChatClient {
             public void onSuccess(JWTToken token) {
                 synchronized (mJWTTokenLock) {
                     mJWTToken = token;
-                    mListener.onReissueSuccess(token.getUserId(), token.getUserNickname(), token.getUserRole());
                 }
+                AsyncReissueEvent.Params param = new AsyncReissueEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                param.userId = token.getUserId();
+                param.userNickname = token.getUserNickname();
+                param.userRole = token.getUserRole();
+                param.apiType = ChatAPIEnum.Unknown;
+                param.apiObject = null;
+                new AsyncReissueEvent().execute(param);
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onReissueFail(code, message);
+                AsyncReissueEvent.Params param = new AsyncReissueEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncReissueEvent().execute(param);
+            }
+        });
+    }
+
+    public void reissue(ChatAPIEnum apiType, Object apiParameter) {
+        JWTToken jwtToken = null;
+        synchronized (mJWTTokenLock) {
+            jwtToken = mJWTToken.toBuilder().build();
+        }
+        mUserClient.reissue(jwtToken.getGrantType(), jwtToken.getAccessToken(), jwtToken.getRefreshToken(), new OnReissueListener() {
+            @Override
+            public void onSuccess(JWTToken token) {
+                synchronized (mJWTTokenLock) {
+                    mJWTToken = token;
+                }
+                AsyncReissueEvent.Params param = new AsyncReissueEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                param.userId = token.getUserId();
+                param.userNickname = token.getUserNickname();
+                param.userRole = token.getUserRole();
+                param.apiType = apiType;
+                param.apiObject = apiParameter;
+                new AsyncReissueEvent().execute(param);
+            }
+
+            @Override
+            public void onFailure(String code, String message) {
+                AsyncReissueEvent.Params param = new AsyncReissueEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncReissueEvent().execute(param);
             }
         });
     }
@@ -215,18 +250,31 @@ public class ChatClient {
         mUserClient.findUser(jwtToken.getGrantType(), jwtToken.getAccessToken(), userId, new OnFindUserListener() {
             @Override
             public void onSuccess(String userId, String userNickname) {
-                mListener.onFindUserSuccess(userId, userNickname);
+                AsyncFindUserEvent.Params param = new AsyncFindUserEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                param.userId = userId;
+                param.userNickname = userNickname;
+                new AsyncFindUserEvent().execute(param);
             }
 
             @Override
             public void onReissueNeeded() {
-                //reissue();
-                mListener.onReissueNeeded();
+                AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                param.chatClient = ChatClient.this;
+                param.apiType = ChatAPIEnum.FindUser;
+                param.apiParameter = FindUserParameter.builder().userId(userId);
+                new AsyncReissueNeededEvent().execute(param);
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onFindUserFail(code, message);
+                AsyncFindUserEvent.Params param = new AsyncFindUserEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncFindUserEvent().execute(param);
             }
         });
     }
@@ -239,18 +287,30 @@ public class ChatClient {
         mRoomClient.getRoomList(jwtToken.getGrantType(), jwtToken.getAccessToken(), new OnGetRoomListListener() {
             @Override
             public void onSuccess(List<ChatRoom> roomList) {
-                mListener.onGetRoomListSuccess(roomList);
+                AsyncGetRoomListEvent.Params param = new AsyncGetRoomListEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                param.roomList = roomList;
+                new AsyncGetRoomListEvent().execute(param);
             }
 
             @Override
             public void onReissueNeeded() {
-                //reissue();
-                mListener.onReissueNeeded();
+                AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                param.chatClient = ChatClient.this;
+                param.apiType = ChatAPIEnum.GetRoomList;
+                param.apiParameter = null;
+                new AsyncReissueNeededEvent().execute(param);
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onGetRoomListFail(code, message);
+                AsyncGetRoomListEvent.Params param = new AsyncGetRoomListEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncGetRoomListEvent().execute(param);
             }
         });
     }
@@ -263,18 +323,29 @@ public class ChatClient {
         mRoomClient.createRoom(jwtToken.getGrantType(), jwtToken.getAccessToken(), roomName, roomDescription, userIds, new OnCreateRoomListener() {
             @Override
             public void onSuccess() {
-                mListener.onCreateRoomSuccess();
+                AsyncCreateRoomEvent.Params param = new AsyncCreateRoomEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                new AsyncCreateRoomEvent().execute(param);
             }
 
             @Override
             public void onReissueNeeded() {
-                //reissue();
-                mListener.onReissueNeeded();
+                AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                param.chatClient = ChatClient.this;
+                param.apiType = ChatAPIEnum.CreateRoom;
+                param.apiParameter = CreateRoomParameter.builder().roomName(roomName).roomDesc(roomDescription).userIDs(userIds);
+                new AsyncReissueNeededEvent().execute(param);
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onCreateRoomFail(code, message);
+                AsyncCreateRoomEvent.Params param = new AsyncCreateRoomEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncCreateRoomEvent().execute(param);
             }
         });
     }
@@ -287,18 +358,31 @@ public class ChatClient {
         mRoomClient.getRoomUsers(jwtToken.getGrantType(), jwtToken.getAccessToken(), roomId, new OnGetRoomUserListListener() {
             @Override
             public void onSuccess(String roomId, List<ChatUser> userList) {
-                mListener.onGetRoomUserListSuccess(roomId, userList);
+                AsyncGetRoomUserListEvent.Params param = new AsyncGetRoomUserListEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                param.roomId = roomId;
+                param.userList = userList;
+                new AsyncGetRoomUserListEvent().execute(param);
             }
 
             @Override
             public void onReissueNeeded() {
-                //reissue();
-                mListener.onReissueNeeded();
+                AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                param.chatClient = ChatClient.this;
+                param.apiType = ChatAPIEnum.GetRoomUserList;
+                param.apiParameter = GetRoomUserListParameter.builder().roomId(roomId);
+                new AsyncReissueNeededEvent().execute(param);
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onGetRoomUserListFail(code, message);
+                AsyncGetRoomUserListEvent.Params param = new AsyncGetRoomUserListEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncGetRoomUserListEvent().execute(param);
             }
         });
     }
@@ -311,18 +395,29 @@ public class ChatClient {
         mRoomClient.leaveRoom(jwtToken.getGrantType(), jwtToken.getAccessToken(), roomId, new OnLeaveRoomListener() {
             @Override
             public void onSuccess() {
-                mListener.onLeaveRoomSuccess();
+                AsyncLeaveRoomEvent.Params param = new AsyncLeaveRoomEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                new AsyncLeaveRoomEvent().execute(param);
             }
 
             @Override
             public void onReissueNeeded() {
-                //reissue();
-                mListener.onReissueNeeded();
+                AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                param.chatClient = ChatClient.this;
+                param.apiType = ChatAPIEnum.LeaveRoom;
+                param.apiParameter = LeaveRoomParameter.builder().roomId(roomId);
+                new AsyncReissueNeededEvent().execute(param);
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onLeaveRoomFail(code, message);
+                AsyncLeaveRoomEvent.Params param = new AsyncLeaveRoomEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncLeaveRoomEvent().execute(param);
             }
         });
     }
@@ -335,18 +430,29 @@ public class ChatClient {
         mRoomClient.inviteUser(jwtToken.getGrantType(), jwtToken.getAccessToken(), roomId, userId, new OnInviteUserListener() {
             @Override
             public void onSuccess() {
-                mListener.onInviteUserSuccess();
+                AsyncInviteUserEvent.Params param = new AsyncInviteUserEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                new AsyncInviteUserEvent().execute(param);
             }
 
             @Override
             public void onReissueNeeded() {
-                //reissue();
-                mListener.onReissueNeeded();
+                AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                param.chatClient = ChatClient.this;
+                param.apiType = ChatAPIEnum.InviteUser;
+                param.apiParameter = InviteUserParameter.builder().roomId(roomId).userId(userId);
+                new AsyncReissueNeededEvent().execute(param);
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onInviteUserFail(code, message);
+                AsyncInviteUserEvent.Params param = new AsyncInviteUserEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncInviteUserEvent().execute(param);
             }
         });
     }
@@ -359,18 +465,102 @@ public class ChatClient {
         mMessageClient.getRoomMessages(jwtToken.getGrantType(), jwtToken.getAccessToken(), roomId, new OnGetRoomMessageListListener() {
             @Override
             public void onSuccess(String roomId, List<ChatMessage> messageList) {
-                mListener.onGetRoomMessageListSuccess(roomId, messageList);
+                AsyncGetRoomMessageListEvent.Params param = new AsyncGetRoomMessageListEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                param.roomId = roomId;
+                param.messageList = messageList;
+                new AsyncGetRoomMessageListEvent().execute(param);
             }
 
             @Override
             public void onReissueNeeded() {
-                //reissue();
-                mListener.onReissueNeeded();
+                AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                param.chatClient = ChatClient.this;
+                param.apiType = ChatAPIEnum.GetRoomMessageList;
+                param.apiParameter = GetRoomMessageListParameter.builder().roomId(roomId);
+                new AsyncReissueNeededEvent().execute(param);
             }
 
             @Override
             public void onFailure(String code, String message) {
-                mListener.onGetRoomMessageListFail(code, message);
+                AsyncGetRoomMessageListEvent.Params param = new AsyncGetRoomMessageListEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncGetRoomMessageListEvent().execute(param);
+            }
+        });
+    }
+
+    public void uploadFile(String filePath, String roomId, String userId) {
+        JWTToken jwtToken = null;
+        synchronized (mJWTTokenLock) {
+            jwtToken = mJWTToken.toBuilder().build();
+        }
+        mMessageClient.uploadFile(jwtToken.getGrantType(), jwtToken.getAccessToken(), filePath, roomId, userId, new OnFileUploadListener() {
+            @Override
+            public void onSuccess(String fileName, String fileDownloadUrl, String fileType, Long fileSize) {
+                AsyncUploadFileEvent.Params param = new AsyncUploadFileEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                param.fileName = fileName;
+                param.fileDownloadUrl = fileDownloadUrl;
+                param.fileType = fileType;
+                param.fileSize = fileSize;
+                new AsyncUploadFileEvent().execute(param);
+            }
+
+            @Override
+            public void onReissueNeeded() {
+                AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                param.chatClient = ChatClient.this;
+                param.apiType = ChatAPIEnum.UploadFile;
+                param.apiParameter = UploadFileParameter.builder().filePath(filePath).roomId(roomId).userId(userId);
+                new AsyncReissueNeededEvent().execute(param);
+            }
+
+            @Override
+            public void onFailure(String code, String message) {
+                AsyncUploadFileEvent.Params param = new AsyncUploadFileEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncUploadFileEvent().execute(param);
+            }
+        });
+    }
+
+    public void downloadFile(String downloadUrl, String filename) {
+        mMessageClient.downloadFile(downloadUrl, filename, new OnFileDownloadListener() {
+            @Override
+            public void onSuccess(File file) {
+                AsyncDownloadFileEvent.Params param = new AsyncDownloadFileEvent.Params();
+                param.observer = mListener;
+                param.type = SUCCESS;
+                param.file = file;
+                new AsyncDownloadFileEvent().execute(param);
+            }
+
+            @Override
+            public void onReissueNeeded() {
+                AsyncReissueNeededEvent.Params param = new AsyncReissueNeededEvent.Params();
+                param.chatClient = ChatClient.this;
+                param.apiType = ChatAPIEnum.DownloadFile;
+                param.apiParameter = DownloadFileParameter.builder().downloadUrl(downloadUrl).fileName(filename);
+                new AsyncReissueNeededEvent().execute(param);
+            }
+
+            @Override
+            public void onFailure(String code, String message) {
+                AsyncDownloadFileEvent.Params param = new AsyncDownloadFileEvent.Params();
+                param.observer = mListener;
+                param.type = FAIL;
+                param.code = code;
+                param.message = message;
+                new AsyncDownloadFileEvent().execute(param);
             }
         });
     }
@@ -383,7 +573,10 @@ public class ChatClient {
         mMessageClient.beginChatMessage(jwtToken.getGrantType(), jwtToken.getAccessToken(), roomId, new OnMessageReceiverListener() {
             @Override
             public void onMessageReceive(ChatMessage chatMessage) {
-                mListener.onMessageReceive(chatMessage);
+                AsyncMessageReceiveEvent.Params param = new AsyncMessageReceiveEvent.Params();
+                param.observer = mListener;
+                param.message = chatMessage;
+                new AsyncMessageReceiveEvent().execute(param);
             }
         });
     }
@@ -402,49 +595,5 @@ public class ChatClient {
 
     public void sendComment(String roomId, String message, String parentMessageId) {
         mMessageClient.sendComment(ChatMessageEnum.MSG_TALK, roomId, message, parentMessageId);
-    }
-
-    public void uploadFile(String filePath, String roomId, String userId) {
-        JWTToken jwtToken = null;
-        synchronized (mJWTTokenLock) {
-            jwtToken = mJWTToken.toBuilder().build();
-        }
-        mMessageClient.uploadFile(jwtToken.getGrantType(), jwtToken.getAccessToken(), filePath, roomId, userId, new OnFileUploadListener() {
-            @Override
-            public void onSuccess(String fileName, String fileDownloadUrl, String fileType, Long fileSize) {
-                mListener.onUploadFileSuccess(fileName, fileDownloadUrl, fileType, fileSize);
-            }
-
-            @Override
-            public void onReissueNeeded() {
-                //reissue();
-                mListener.onReissueNeeded();
-            }
-
-            @Override
-            public void onFailure(String code, String message) {
-                mListener.onUploadFileFail(code, message);
-            }
-        });
-    }
-
-    public void downloadFile(String downloadUrl, String filename) {
-        mMessageClient.downloadFile(downloadUrl, filename, new OnFileDownloadListener() {
-            @Override
-            public void onSuccess(File file) {
-                mListener.onDownloadFileSuccess(file);
-            }
-
-            @Override
-            public void onReissueNeeded() {
-                //reissue();
-                mListener.onReissueNeeded();
-            }
-
-            @Override
-            public void onFailure(String code, String message) {
-                mListener.onDownloadFileFail(code, message);
-            }
-        });
     }
 }
