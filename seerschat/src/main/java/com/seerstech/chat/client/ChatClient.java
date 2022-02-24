@@ -104,6 +104,10 @@ public class ChatClient {
         mJWTTokenLock = new Object();
     }
 
+    public void setListener(OnChatListener listener) {
+        mListener = listener;
+    }
+
     public void setJWTToken(JWTToken token) {
         mJWTToken = token;
     }
@@ -355,7 +359,7 @@ public class ChatClient {
         synchronized (mJWTTokenLock) {
             jwtToken = mJWTToken.toBuilder().build();
         }
-        mRoomClient.getRoomUsers(jwtToken.getGrantType(), jwtToken.getAccessToken(), roomId, new OnGetRoomUserListListener() {
+        mRoomClient.getRoomUserList(jwtToken.getGrantType(), jwtToken.getAccessToken(), roomId, new OnGetRoomUserListListener() {
             @Override
             public void onSuccess(String roomId, List<ChatUser> userList) {
                 AsyncGetRoomUserListEvent.Params param = new AsyncGetRoomUserListEvent.Params();

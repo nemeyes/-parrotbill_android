@@ -10,6 +10,7 @@ import com.koushikdutta.async.http.AsyncHttpRequest;
 import com.koushikdutta.async.http.AsyncHttpResponse;
 import com.koushikdutta.async.http.body.JSONObjectBody;
 import com.koushikdutta.async.http.body.MultipartFormDataBody;
+import com.seerstech.chat.client.error.ErrorMessage;
 import com.seerstech.chat.client.message.OnFileDownloadListener;
 import com.seerstech.chat.client.message.OnFileUploadListener;
 import com.seerstech.chat.client.message.OnGetRoomMessageListListener;
@@ -76,35 +77,41 @@ public class MessageClient {
             @Override
             public void onCompleted(Exception e, AsyncHttpResponse source, JSONObject result) {
                 if(e==null) {
-                    try {
-                        String code = result.getString("code");
-                        String message = result.getString("message");
-                        if (code.equals(SUCCESS)) {
-                            String roomId = result.getString("room_id");
-                            JSONArray messages = result.getJSONArray("messages");
-                            ArrayList<ChatMessage> messageList = null;
-                            if(messages.length()>0) {
-                                messageList = new ArrayList<ChatMessage>();
-                            }
-                            for (int i = 0; i < messages.length(); i++) {
-
-                                JSONObject obj = messages.getJSONObject(i);
-                                ChatMessage currentMessage = parseMessageJSONObject(obj);
-                                if(currentMessage!=null) {
-                                    messageList.add(currentMessage);
+                    if(source.code()==200) {
+                        try {
+                            String code = result.getString("code");
+                            String message = result.getString("message");
+                            if (code.equals(SUCCESS)) {
+                                String roomId = result.getString("room_id");
+                                JSONArray messages = result.getJSONArray("messages");
+                                ArrayList<ChatMessage> messageList = null;
+                                if (messages.length() > 0) {
+                                    messageList = new ArrayList<ChatMessage>();
                                 }
-                            }
-                            getRoomMessageListObserver.onSuccess(roomId, messageList);
+                                for (int i = 0; i < messages.length(); i++) {
 
-                        } else {
-                            getRoomMessageListObserver.onFailure(code, message);
+                                    JSONObject obj = messages.getJSONObject(i);
+                                    ChatMessage currentMessage = parseMessageJSONObject(obj);
+                                    if (currentMessage != null) {
+                                        messageList.add(currentMessage);
+                                    }
+                                }
+                                getRoomMessageListObserver.onSuccess(roomId, messageList);
+
+                            } else {
+                                getRoomMessageListObserver.onFailure(code, message);
+                            }
+                        } catch (JSONException jsonException) {
+                            getRoomMessageListObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_GETROOMMESSAGELIST);
                         }
-                    } catch (JSONException jsonException) {}
+                    } else {
+                        getRoomMessageListObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_GETROOMMESSAGELIST);
+                    }
                 } else {
-                    if(source.code()==401) {
+                    if(source!=null && source.code()==401) {
                         getRoomMessageListObserver.onReissueNeeded();
                     } else {
-                        getRoomMessageListObserver.onFailure("CODE_GENERIC_FAIL", "방메시지 목록 불러오기 실패");
+                        getRoomMessageListObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_GETROOMMESSAGELIST);
                     }
                 }
             }
@@ -238,26 +245,32 @@ public class MessageClient {
             @Override
             public void onCompleted(Exception e, AsyncHttpResponse source, JSONObject result) {
                 if(e==null) {
-                    try {
-                        String code = result.getString("code");
-                        if (code.equals(SUCCESS)) {
-                            String fileName = result.getString("file_name");
-                            String fileDownloadUrl = result.getString("file_download_url");
-                            String fileType = result.getString("file_type");
-                            Long fileSize = result.getLong("file_size");
-                            fileUploadObserver.onSuccess(fileName, fileDownloadUrl, fileType, fileSize);
-                        } else {
-                            String errMessage = result.getString("message");
-                            fileUploadObserver.onFailure(code, errMessage);
+                    if(source.code()==200) {
+                        try {
+                            String code = result.getString("code");
+                            if (code.equals(SUCCESS)) {
+                                String fileName = result.getString("file_name");
+                                String fileDownloadUrl = result.getString("file_download_url");
+                                String fileType = result.getString("file_type");
+                                Long fileSize = result.getLong("file_size");
+                                fileUploadObserver.onSuccess(fileName, fileDownloadUrl, fileType, fileSize);
+                            } else {
+                                String errMessage = result.getString("message");
+                                fileUploadObserver.onFailure(code, errMessage);
+                            }
+                        } catch (JSONException jsonException) {
+                            fileUploadObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_UPLOADFILE);
                         }
-                    } catch (JSONException jsonException) {}
+                    } else {
+                        fileUploadObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_UPLOADFILE);
+                    }
                 } else {
                     if(source!=null && source.code()==401) {
                         fileUploadObserver.onReissueNeeded();
                     } else if(source!=null && source.code()==413) {
-                        fileUploadObserver.onFailure("CODE_GENERIC_FAIL", "파일사이즈가 매우 큽니다.");
+                        fileUploadObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_LARGEFILESIZE);
                     } else {
-                        fileUploadObserver.onFailure("CODE_GENERIC_FAIL", "파일전송에 실패했습니다.");
+                        fileUploadObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_UPLOADFILE);
                     }
                 }
             }
@@ -273,7 +286,7 @@ public class MessageClient {
                 if(e==null) {
                     fileDownloadObserver.onSuccess(result);
                 } else {
-                    fileDownloadObserver.onFailure("CODE_GENERIC_FAIL", "Failed In Download File");
+                    fileDownloadObserver.onFailure("CODE_GENERIC_FAIL", ErrorMessage.FAILED_IN_DOWNLOADFILE);
                 }
             }
         });
