@@ -203,6 +203,41 @@ public class MessageRecyclerViewAdapter extends RecyclerView.Adapter<MessageRecy
                             .load(R.drawable.download)
                             .override(dpToPx(40, mFragment.getActivity()), dpToPx(40, mFragment.getActivity()))
                             .into(holder.remote_image);
+
+                    holder.remote_image.setOnClickListener(new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View view) {
+
+                            mFragment.getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    FetchConfiguration fetchConfiguration = new FetchConfiguration.Builder(mFragment.getActivity())
+                                            .setDownloadConcurrentLimit(3)
+                                            .build();
+
+                                    mFetch = Fetch.Impl.getInstance(fetchConfiguration);
+                                    mFetch.addListener(mFetchListener);
+
+                                    String url = item.getDownloadPath();
+                                    String fileName = url.substring(url.lastIndexOf('/') + 1, url.length());
+
+                                    String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/";
+                                    String filePath = path + fileName;
+
+                                    final Request request = new Request(item.getDownloadPath(), filePath);
+                                    request.setPriority(Priority.HIGH);
+                                    request.setNetworkType(NetworkType.ALL);
+
+                                    mFetch.enqueue(request, updatedRequest -> {
+                                        Toast.makeText(mFragment.getActivity(), "파일다운로드 시작", Toast.LENGTH_LONG);
+                                    }, error -> {
+                                        Toast.makeText(mFragment.getActivity(), "파일다운로드 실패", Toast.LENGTH_LONG);
+                                    });
+                                }
+                            });
+                        }
+                    });
                 }
             } else {
                 holder.remote_message.setText(item.getMessage());
